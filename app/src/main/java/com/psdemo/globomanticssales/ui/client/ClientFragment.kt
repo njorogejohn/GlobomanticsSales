@@ -1,11 +1,15 @@
 package com.psdemo.globomanticssales.ui.client
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.format.DateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.INVISIBLE
 import android.view.ViewGroup
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -15,6 +19,7 @@ import com.psdemo.globomanticssales.buildPdf
 import com.psdemo.globomanticssales.getFiles
 import com.psdemo.globomanticssales.proposalExists
 import kotlinx.android.synthetic.main.fragment_client.*
+import java.io.File
 import java.util.*
 
 class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
@@ -66,7 +71,28 @@ class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
         }
     }
 
-    override fun onClick(id: Int) {
+    override fun onClick(file: File) {
+        val uri: Uri? = try {
+            FileProvider.getUriForFile(
+                context!!,
+                "com.psdemo.globomanticssales.fileprovider",
+                file
+            )
+        }catch (e: IllegalArgumentException){
+            Log.e("client fragment", "the selected file can't be shared: $file", e)
+            null
+        }
 
+        if (uri != null){
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(
+                uri,
+                activity!!.contentResolver.getType(uri)
+            )
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(intent)
+
+
+        }
     }
 }
