@@ -102,6 +102,7 @@ fun Context.buildPdf(client: Client) {
 
 fun Context.proposalExists(id: Int) = File(this.getFolder(id), FILENAME).exists()
 
+fun Context.getFiles(id: Int) = this.getFolder(id).listFiles()!!.asList()
 
 private fun Context.getFolder(id: Int): File {
     val directory = File("${this.filesDir}/$id")
