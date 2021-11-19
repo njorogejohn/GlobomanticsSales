@@ -10,4 +10,8 @@
     <string name="save">Save</string>
     <string name="order">Order</string>
     <string name="terms">Terms</string>
+    <string name="profile_preference_key">profile</string>
+    <string name="profile_name_key">NAME</string>
+    <string name="profile_name_default">John Doe</string>
+    <string name="profile_success">Name Updated Successfully</string>
 </resources>
