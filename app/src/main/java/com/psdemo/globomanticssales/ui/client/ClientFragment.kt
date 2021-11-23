@@ -1,13 +1,16 @@
 package com.psdemo.globomanticssales.ui.client
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import android.text.format.DateFormat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -20,12 +23,14 @@ import com.psdemo.globomanticssales.getFiles
 import com.psdemo.globomanticssales.proposalExists
 import kotlinx.android.synthetic.main.fragment_client.*
 import java.io.File
+import java.io.FileNotFoundException
 import java.util.*
 
 class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
 
     private var clientId = 0
     private var  adapter = FilesAdapter(this)
+    private lateinit var inputPDF: ParcelFileDescriptor
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,15 +63,25 @@ class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
 
                     if (context!!.proposalExists(clientId)) {
                         btnProposal.visibility = INVISIBLE
+                        btnPicture.visibility = VISIBLE
                     } else {
                         btnProposal.setOnClickListener {
                             context!!.buildPdf(client)
                             it.visibility = INVISIBLE
+                            btnPicture.visibility = VISIBLE
                             adapter.setFiles(context!!.getFiles(clientId))
                         }
                     }
 
-
+                    btnPicture.setOnClickListener {
+                        val requestFileIntent = Intent(
+                            Intent.ACTION_OPEN_DOCUMENT
+                        ).apply {
+                            type = "images/*"
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                        }
+                        startActivityForResult(requestFileIntent, PICTURE_REQUEST)
+                    }
                 })
         }
     }
@@ -94,5 +109,27 @@ class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
 
 
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, returnIntent: Intent?) {
+        if (resultCode != Activity.RESULT_OK ||
+                requestCode != PICTURE_REQUEST ||
+                returnIntent == null){
+            return
+        }
+
+        returnIntent.data?.also {
+            returnUri -> try {
+                activity!!.contentResolver.openFileDescriptor(returnUri, "r")!!
+            }catch (e: FileNotFoundException){
+                Log.e("Client Fragment","File not Found", e)
+            return
+            }
+        }
+
+    }
+
+    companion object{
+        const val PICTURE_REQUEST = 120;
     }
 }

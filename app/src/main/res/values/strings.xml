@@ -16,4 +16,5 @@
     <string name="profile_success">Name Updated Successfully</string>
     <string name="files">Files</string>
     <string name="generate_proposal">Generate Proposal</string>
+    <string name="add_picture">Add Picture</string>
 </resources>
