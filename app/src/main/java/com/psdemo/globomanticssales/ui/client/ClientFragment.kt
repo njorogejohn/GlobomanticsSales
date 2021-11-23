@@ -2,6 +2,8 @@ package com.psdemo.globomanticssales.ui.client
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
@@ -12,15 +14,15 @@ import android.view.View
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.psdemo.globomanticssales.R
-import com.psdemo.globomanticssales.buildPdf
-import com.psdemo.globomanticssales.getFiles
-import com.psdemo.globomanticssales.proposalExists
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.psdemo.globomanticssales.*
 import kotlinx.android.synthetic.main.fragment_client.*
 import java.io.File
 import java.io.FileNotFoundException
@@ -77,7 +79,7 @@ class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
                         val requestFileIntent = Intent(
                             Intent.ACTION_OPEN_DOCUMENT
                         ).apply {
-                            type = "images/*"
+                            type = "image/*"
                             addCategory(Intent.CATEGORY_OPENABLE)
                         }
                         startActivityForResult(requestFileIntent, PICTURE_REQUEST)
@@ -112,6 +114,7 @@ class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, returnIntent: Intent?) {
+        Log.e("ClientFragment:","requestcode: $requestCode resultCode: $resultCode")
         if (resultCode != Activity.RESULT_OK ||
                 requestCode != PICTURE_REQUEST ||
                 returnIntent == null){
@@ -119,13 +122,38 @@ class ClientFragment : Fragment(), FilesAdapter.OnClickListener {
         }
 
         returnIntent.data?.also {
-            returnUri -> try {
+            returnUri ->
+            inputPDF =  try {
                 activity!!.contentResolver.openFileDescriptor(returnUri, "r")!!
             }catch (e: FileNotFoundException){
                 Log.e("Client Fragment","File not Found", e)
             return
             }
         }
+
+        val fileDescriptor = inputPDF.fileDescriptor
+        val image: Bitmap = BitmapFactory.decodeFileDescriptor(fileDescriptor)
+        inputPDF.close()
+
+        val input = TextInputEditText(context)
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        input.layoutParams = layoutParams
+        input.hint = "Picture Name"
+
+        MaterialAlertDialogBuilder(context)
+            .setTitle("Add Picture")
+            .setView(input)
+            .setPositiveButton("Save"){_,_ ->
+                val name = input.text.toString()
+                context!!.saveImage(image, name, clientId)
+                adapter.setFiles(context!!.getFiles(clientId))
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
 
     }
 

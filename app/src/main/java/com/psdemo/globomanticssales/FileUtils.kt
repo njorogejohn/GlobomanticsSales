@@ -1,6 +1,7 @@
 package com.psdemo.globomanticssales
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
@@ -103,6 +104,17 @@ fun Context.buildPdf(client: Client) {
 fun Context.proposalExists(id: Int) = File(this.getFolder(id), FILENAME).exists()
 
 fun Context.getFiles(id: Int) = this.getFolder(id).listFiles()!!.asList()
+
+fun Context.saveImage(bitmap: Bitmap, fileName: String, id: Int){
+    val directory =  this.getFolder(id)
+    val file = File(directory, "$fileName.png")
+
+    val outputStream = FileOutputStream(file)
+    bitmap.compress(Bitmap.CompressFormat.PNG, 90, outputStream)
+    outputStream.flush()
+    outputStream.close()
+
+}
 
 private fun Context.getFolder(id: Int): File {
     val directory = File("${this.filesDir}/$id")
